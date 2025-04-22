@@ -1,4 +1,4 @@
-const { userCluster } = require("../models");
+const { userCluster } = require("../../models");
 const {
   register,
   login,
@@ -8,7 +8,7 @@ const {
   forgetPasswordOtp,
   newPassword,
   verifyForgetPasswordOtp,
-} = require("../controllers/authController");
+} = require("../auth/authController");
 
 module.exports.registerUser = async (req, res) => {
   register(userCluster, req.body, res);
@@ -104,11 +104,9 @@ exports.showMe = async (req, res) => {
       .status(200)
       .json({ msg: "authenticated user fetched successfully", data: user });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        message: "Error fetching authenticated user",
-        error: error.message,
-      });
+    return res.status(500).json({
+      message: "Error fetching authenticated user",
+      error: error.message,
+    });
   }
 };

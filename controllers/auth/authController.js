@@ -1,17 +1,10 @@
-const { authSchema } = require("../utils/schema");
-const { get4DigitCode } = require("../utils/otpGenerator");
-const generateToken = require("../utils/jwtToken");
-// const userId = require("../utils/userId")
-// const bcrypt = require("bcrypt");
+const { get4DigitCode } = require("../../utils/otpGenerator");
+const generateToken = require("../../utils/jwtToken");
 const bcrypt = require("bcryptjs");
 
 module.exports.register = async (Model, userInfo, res) => {
   try {
     const { email, password, name, username } = userInfo;
-    const result = await authSchema.validate(userInfo);
-    if (!result) {
-      return res.status(400).json({ message: "Invalid request body" });
-    }
     const existingUser = await Model.findOne({ email });
     if (existingUser) {
       return res
