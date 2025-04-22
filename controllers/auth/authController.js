@@ -1,5 +1,4 @@
-const { get4DigitCode } = require("../../utils/otpGenerator");
-const generateToken = require("../../utils/jwtToken");
+const { generateToken, get4DigitCode } = require("../../utils");
 const bcrypt = require("bcryptjs");
 
 module.exports.register = async (Model, userInfo, res) => {
@@ -41,61 +40,54 @@ module.exports.register = async (Model, userInfo, res) => {
 
 module.exports.login = async (Model, userInfo, res) => {
   const { email, password } = userInfo;
-  try {
-    if (!email || !password) {
-      return res.status(400).json({ message: "email, password is required" });
-    }
+  if (!email || !password) {
+    return res.status(400).json({ message: "email, password is required" });
+  }
 
-    let query = Model.findOne({ email });
-    const user = await query;
+  let query = Model.findOne({ email });
+  const user = await query;
 
-    if (!user) {
-      return res
-        .status(400)
-        .json({ message: "User not found against this email" });
-    }
+  if (!user) {
+    return res
+      .status(400)
+      .json({ message: "User not found against this email" });
+  }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Password is incorrect" });
-    }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(400).json({ message: "Password is incorrect" });
+  }
 
-    if (!user.isVerified) {
-      const code = get4DigitCode();
-      user.emailOtp = code;
-      await user.save();
-      await sendVerificationEmail(email, code);
-      return res.status(401).json({ message: "User not verified", code });
-    }
+  if (!user.isVerified) {
+    const code = get4DigitCode();
+    user.emailOtp = code;
+    await user.save();
+    await sendVerificationEmail(email, code);
+    return res.status(401).json({ message: "User not verified", code });
+  }
 
-    if (!user.approvedByAdmin && user.profileCompleted) {
-      return res.status(403).json({
-        message: "Your account is in the review process by the administrator.",
-      });
-    }
-
-    const token = generateToken(user._id);
-
-    let responseData = {
-      message: "User logged in successfully",
-      data: {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        approvedByAdmin: user.approvedByAdmin,
-        profileCompleted: user.profileCompleted,
-        token,
-      },
-    };
-
-    res.status(200).json(responseData);
-  } catch (error) {
-    res.status(400).json({
-      message: "Failed to login",
-      error: error.message,
+  if (!user.approvedByAdmin && user.profileCompleted) {
+    return res.status(403).json({
+      message: "Your account is in the review process by the administrator.",
     });
   }
+
+  const token = generateToken(user._id);
+
+  let responseData = {
+    message: "User logged in successfully",
+    data: {
+      _id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      approvedByAdmin: user.approvedByAdmin,
+      profileCompleted: user.profileCompleted,
+      token,
+    },
+  };
+
+  res.status(200).json(responseData);
 };
 
 module.exports.sendCode = async (Model, userInfo, res) => {

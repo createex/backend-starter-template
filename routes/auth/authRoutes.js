@@ -3,8 +3,9 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 const { userController } = require("../../controllers");
 const { authMiddleware } = require("../../middleware/authMiddleware");
+const { validateUserRegistration } = require("../../utils");
 
-router.post("/register", userController.registerUser);
+router.post("/register", validateUserRegistration, userController.registerUser);
 router.post("/login", userController.loginUser);
 router.post("/verify", userController.verifyVerificationCode);
 router.post("/forgetPassword", userController.forgetPasswordOtp);
